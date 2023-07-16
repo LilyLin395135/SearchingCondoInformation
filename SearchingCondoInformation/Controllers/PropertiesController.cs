@@ -8,7 +8,7 @@ namespace SearchingCondoInformation.Controllers
     [ApiController]
     public class PropertiesController : ControllerBase
     {
-        [HttpGet]//兩個金額依定大於0，最大金額和最小金額符合規則
+        [HttpGet]//下一步驗證：兩個金額依定大於0，最大金額和最小金額符合規則
 
         public IActionResult Get(string keyword, decimal minPrice, decimal maxPrice)
         {
@@ -23,25 +23,15 @@ namespace SearchingCondoInformation.Controllers
 
             var result = allProperties;// = 右邊會覆蓋左邊
 
-            if (!string.IsNullOrEmpty(keyword))//不是Null或空字串
+            if (!string.IsNullOrEmpty(keyword))//不是Null或空字串//加上地址的篩選
             {
-                result = result.Where(c=>c.CondoName.Contains(keyword, StringComparison.OrdinalIgnoreCase));//keyword大寫
+                result = result.Where(c=>c.CondoName.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.City.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.District.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.Road.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Number.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                //keyword忽略大寫//c代表的是PropertyResponse
             }
-            if(minPrice >= 0)
-            {
-                result = result.Where(c=>c.Price>minPrice);
-            }
-            if (maxPrice >= 0) 
-            {
-                result = result.Where(c=>c.Price<maxPrice);
-            }
+
 
             return Ok(result);//因為型別是IActionResult所以這裡回傳也要IActionResult，statuscode的文字的爸爸就都是IActionResult
-
-
         }
-
-
 
     }
 
@@ -58,14 +48,13 @@ namespace SearchingCondoInformation.Controllers
 
         public string CondoName { get; set; }
         public decimal Price { get; set; }
-
+        public Address Address { get; }
 
         public PropertyResponse(string condoName, decimal price, Address address)
         {
             this.CondoName = condoName;
             this.Price= price;
-            
-
+            Address = address;
         }
     }
 }
