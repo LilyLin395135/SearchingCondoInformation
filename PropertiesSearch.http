@@ -1,4 +1,4 @@
-GET https://localhost:7080/api/Properties?minPrice=3000000000
+GET https://localhost:7080/api/Properties?keyword=«n´ä&minPrice=-2000000000&maxPrice=5000000000
 
 
 

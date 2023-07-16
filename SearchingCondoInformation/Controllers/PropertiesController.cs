@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -20,6 +21,15 @@ namespace SearchingCondoInformation.Controllers
 
         public IActionResult Get(string? keyword, decimal? minPrice, decimal? maxPrice)
         {
+            var request = new PropertyRequest { Keyword = keyword, MinPrice = minPrice, MaxPrice = maxPrice };
+            var validator = new PropertyRequestValidator();
+            var validationResult = validator.Validate(request);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+
             var allProperties = new List<PropertyResponse>
             {
                 new PropertyResponse("廣達科技大樓", 3000000000m, new Address { City = "台北市", District = "內湖區", Road = "基湖路", Number = "30號" }),
@@ -33,7 +43,7 @@ namespace SearchingCondoInformation.Controllers
 
             if (!string.IsNullOrEmpty(keyword))//不是Null或空字串//加上地址的篩選
             {
-                result = result.Where(c=>c.CondoName.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.City.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.District.Contains(keyword, StringComparison.OrdinalIgnoreCase)|| c.Address.Road.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Number.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                result = result.Where(c => c.CondoName.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.City.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.District.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Road.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Number.Contains(keyword, StringComparison.OrdinalIgnoreCase));
                 //keyword忽略大寫//c代表的是PropertyResponse
             }
             if (minPrice >= 0)
@@ -50,7 +60,7 @@ namespace SearchingCondoInformation.Controllers
 
     }
 
-    internal class Address
+    public class Address
     {
         public string City { get; set; }
         public string District { get; set; }
@@ -58,7 +68,7 @@ namespace SearchingCondoInformation.Controllers
         public string Number { get; set; }
     }
 
-    internal class PropertyResponse
+    public class PropertyResponse
     {
 
         public string CondoName { get; set; }
@@ -68,8 +78,28 @@ namespace SearchingCondoInformation.Controllers
         public PropertyResponse(string condoName, decimal price, Address address)
         {
             this.CondoName = condoName;
-            this.Price= price;
+            this.Price = price;
             Address = address;
         }
     }
+
+    public class PropertyRequest
+    //string? keyword, decimal? minPrice, decimal? maxPrice
+    {
+        public string? Keyword { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+    }
+
+
+    public class PropertyRequestValidator : AbstractValidator<PropertyRequest>
+    {
+        public PropertyRequestValidator()
+        {
+            RuleFor(c => c.MinPrice).GreaterThanOrEqualTo(0).WithMessage("MinPrice must larger than 0.");
+            RuleFor(c => c.MaxPrice).GreaterThanOrEqualTo(0).WithMessage("MaxPrice must larger than 0.")
+                .GreaterThanOrEqualTo(c=>c.MinPrice).When(c=>c.MinPrice.HasValue).WithMessage("MaxPrice must greater than minPrice.");
+        }
+    }
+
 }
