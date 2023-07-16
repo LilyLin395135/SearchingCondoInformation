@@ -8,9 +8,17 @@ namespace SearchingCondoInformation.Controllers
     [ApiController]
     public class PropertiesController : ControllerBase
     {
-        [HttpGet]//下一步驗證：兩個金額依定大於0，最大金額和最小金額符合規則
+        /// <summary>
+        /// 將 keyword 的型別改為 string?，並將 minPrice 和 maxPrice 的型別改為 decimal?，表示它們是可選的。
+        /// 同時，為這些參數提供了預設值為 null，以防止它們未被提供。
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <param name="minPrice"></param>
+        /// <param name="maxPrice"></param>
+        /// <returns></returns>
+        [HttpGet]
 
-        public IActionResult Get(string keyword, decimal minPrice, decimal maxPrice)
+        public IActionResult Get(string? keyword, decimal? minPrice, decimal? maxPrice)
         {
             var allProperties = new List<PropertyResponse>
             {
