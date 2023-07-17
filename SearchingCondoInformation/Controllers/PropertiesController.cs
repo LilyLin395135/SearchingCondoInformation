@@ -21,10 +21,11 @@ namespace SearchingCondoInformation.Controllers
 
         public IActionResult Get(string? keyword, decimal? minPrice, decimal? maxPrice)
         {
+            //驗證 1.new Validator 2. validator.Validate(request)若為false回傳BadRequest
             var request = new PropertyRequest { Keyword = keyword, MinPrice = minPrice, MaxPrice = maxPrice };
             var validator = new PropertyRequestValidator();
             var validationResult = validator.Validate(request);
-            if (!validationResult.IsValid)
+            if (validationResult.IsValid == false)
             {
                 return BadRequest(validationResult.Errors);
             }
