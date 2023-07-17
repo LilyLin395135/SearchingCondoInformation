@@ -10,19 +10,29 @@ namespace SearchingCondoInformation.Controllers
     public class PropertiesController : ControllerBase
     {
         /// <summary>
-        /// 將 keyword 的型別改為 string?，並將 minPrice 和 maxPrice 的型別改為 decimal?，表示它們是可選的。
-        /// 同時，為這些參數提供了預設值為 null，以防止它們未被提供。
+        /// Refactor建議直接將 PropertyRequest 放在參數
+        /// 參數放PropertyRequest request【代表request body】
+        /// request body的情況下只能用[HttpPost]
+        /// [HttpGet]只能FromQuery，參數要直接放在Get方法，不能在參數放PropertyRequest request【代表request body】
+        /// [HttpPost]原則上FromBody，但也能轉[FromQuery]，如下面兩個方法
+        /// <方法1.>[HttpPost]...Get(PropertyRequest request)...下面http檔案【參數FromBody】
+        /// POST https://localhost:7080/api/Properties
+        /// Content-Type: application/json
+        /// {
+        /// "keyword": "南港",
+        /// "maxPrice": 5000000000,
+        /// "minPrice": 3000000000
+        /// }
+        /// <方法2.>[HttpPost]...Get([FromQuery]PropertyRequest request)...下面http檔案【參數FromQuery】
+        /// POST https://localhost:7080/api/Properties?keyword=大樓&minPrice=2000000000&maxPrice=5000000000
         /// </summary>
-        /// <param name="keyword"></param>
-        /// <param name="minPrice"></param>
-        /// <param name="maxPrice"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
 
-        public IActionResult Get(string? keyword, decimal? minPrice, decimal? maxPrice)
+        public IActionResult Get([FromQuery]PropertyRequest request)
         {
             //驗證 1.new Validator 2. validator.Validate(request)若為false回傳BadRequest
-            var request = new PropertyRequest { Keyword = keyword, MinPrice = minPrice, MaxPrice = maxPrice };
             var validator = new PropertyRequestValidator();
             var validationResult = validator.Validate(request);
             if (validationResult.IsValid == false)
@@ -42,18 +52,18 @@ namespace SearchingCondoInformation.Controllers
 
             var result = allProperties;// = 右邊會覆蓋左邊
 
-            if (!string.IsNullOrEmpty(keyword))//不是Null或空字串//加上地址的篩選
+            if (!string.IsNullOrEmpty(request.Keyword))//不是Null或空字串//加上地址的篩選
             {
-                result = result.Where(c => c.CondoName.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.City.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.District.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Road.Contains(keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Number.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                result = result.Where(c => c.CondoName.Contains(request.Keyword, StringComparison.OrdinalIgnoreCase) || c.Address.City.Contains(request.Keyword, StringComparison.OrdinalIgnoreCase) || c.Address.District.Contains(request.Keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Road.Contains(request.Keyword, StringComparison.OrdinalIgnoreCase) || c.Address.Number.Contains(request.Keyword, StringComparison.OrdinalIgnoreCase));
                 //keyword忽略大寫//c代表的是PropertyResponse
             }
-            if (minPrice >= 0)
+            if (request.MinPrice >= 0)
             {
-                result = result.Where(c => c.Price >= minPrice);
+                result = result.Where(c => c.Price >= request.MinPrice);
             }
-            if (maxPrice >= 0)
+            if (request.MaxPrice>= 0)
             {
-                result = result.Where(c => c.Price <= maxPrice);
+                result = result.Where(c => c.Price <= request.MaxPrice);
             }
 
             return Ok(result);//因為型別是IActionResult所以這裡回傳也要IActionResult，statuscode的文字的爸爸就都是IActionResult

@@ -1,4 +1,11 @@
-GET https://localhost:7080/api/Properties?keyword=«n´ä&minPrice=6000000000&maxPrice=5000000000
+POST https://localhost:7080/api/Properties?keyword=¤j¼Ó&minPrice=2000000000&maxPrice=5000000000
+Content-Type: application/json
+
+{
+  "keyword": "«n´ä",
+  "maxPrice": 5000000000,
+  "minPrice": 3000000000
+}
 
 
 
